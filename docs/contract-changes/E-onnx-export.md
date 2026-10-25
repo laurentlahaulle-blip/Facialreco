@@ -1,6 +1,6 @@
 # E — Dépendances d'export ONNX et installation de PyTorch CPU
 
-**Statut** : proposé (lot E)
+**Statut** : différé (coordinateur, 2026-10-25) — nouvelles dépendances et index PyTorch CPU soumis à l'accord de l'utilisateur ; l'ouverture de download.pytorch.org relève de la configuration réseau de l'environnement (hors du ressort des sessions). À installer sur le PC cible. (lot E)
 
 ## Besoin
 

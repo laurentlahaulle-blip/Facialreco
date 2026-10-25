@@ -1,6 +1,6 @@
 # E — Alignement 5 points partagé (au lieu d'une copie dans `training`)
 
-**Statut** : proposé (lot E)
+**Statut** : différé (coordinateur, 2026-10-25) — la copie est gardée par le test d'équivalence `tests/training` contre `vision.alignment` (exécuté depuis l'intégration). Factorisation dans un module partagé à prévoir avant le premier entraînement réel. (lot E)
 
 ## Besoin
 
