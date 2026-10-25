@@ -42,6 +42,7 @@ def run_engine_worker(
     """Bloque jusqu'à ``stop_event.set()``. Utilisable dans un processus ``spawn``
     (arguments sérialisables si ``factory`` est une chaîne et ``player`` None)."""
     from maisonaccueil.decision import PresenceArrivalTracker, TemporalDecisionEngine
+    from maisonaccueil.recognition.enrollment import build_reference_enroller
     from maisonaccueil.recognition.recognizer import build_reference_recognizer
     from maisonaccueil.storage import (
         ArrivalLogRepository,
@@ -56,12 +57,16 @@ def run_engine_worker(
         create_default_backend,
     )
 
+    from .enrollment_sync import enroll_pending
+
     db = Database(db_path)
     try:
+        store = SqliteEmbeddingStore(db)
+        mdir = Path(models_dir) if models_dir else None
         try:
-            recognizer = build_reference_recognizer(
-                SqliteEmbeddingStore(db), Path(models_dir) if models_dir else None
-            )
+            enroller = build_reference_enroller(mdir)
+            enroll_pending(db, enroller, store)  # avant le chargement de la galerie
+            recognizer = build_reference_recognizer(store, mdir)
         except Exception as exc:
             log.warning("Moteur de référence indisponible : %s", exc)
             db.close()
@@ -99,6 +104,10 @@ def run_engine_worker(
             publisher.on_output(out)
             if time.monotonic() - last_reload[0] >= gallery_reload_s:
                 last_reload[0] = time.monotonic()
+                try:
+                    enroll_pending(db, enroller, store)  # nouvelles collectes
+                except Exception:
+                    log.exception("Enrôlement impossible")
                 recognizer.gallery.reload()
 
         try:
