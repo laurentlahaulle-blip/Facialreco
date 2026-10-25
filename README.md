@@ -25,6 +25,19 @@ uv venv --python 3.12 .venv && uv sync --extra gui
 
 Extras optionnels : `recognition` (ONNX Runtime), `training` (PyTorch — volumineux).
 
+## Utilisation
+
+```powershell
+.venv\Scripts\maisonaccueil --check      # diagnostic (Qt, moteur)
+.venv\Scripts\maisonaccueil --demo       # source synthétique, données en mémoire
+.venv\Scripts\maisonaccueil              # base var\b\maisonaccueil.sqlite, moteur de référence
+```
+
+Le moteur de référence (YuNet + SFace, OpenCV Zoo) exige les poids dans `models\d\`
+(sources et empreintes sha256 : `docs/LICENSES-D.md`). Sans eux, l'application affiche
+« moteur non disponible ». Les images collectées dans des séances « enroll » sont
+transformées automatiquement en représentations par le processus vision.
+
 ## Documentation
 
 - `CLAUDE.md` — règles de collaboration (humains et agents).

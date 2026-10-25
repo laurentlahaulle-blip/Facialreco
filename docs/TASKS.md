@@ -8,13 +8,13 @@ Légende : ☐ à faire · ◐ en cours · ☑ intégré · ⛔ bloqué
 |---|---|---|
 | Audit environnement | ☑ | `docs/AUDIT.md` |
 | Squelette, `pyproject.toml`, `uv.lock`, `.venv` | ☑ | |
-| Contrats typés (v1.2.0) + schéma SQLite v1 | ☑ | `src/maisonaccueil/contracts/` |
+| Contrats typés (v1.3.0) + schéma SQLite v1 | ☑ | `src/maisonaccueil/contracts/` |
 | `LatestQueue`, `ResourceLock` | ☑ | `src/maisonaccueil/pipeline/` |
 | CLAUDE.md, ownership, prompts | ☑ | |
 | Boucle vision (`VisionLoop`, interfaces seules) | ☑ | testée avec doubles |
 | Racine `runtime.engine.run_engine_worker` (A+C+D+F → publication B) | ☑ | thread testé ; repli sans moteur |
-| Sélection du moteur dans le point d'entrée (`VisionProcess`) | ◐ | demandé au lot B |
-| Calcul des représentations depuis les références collectées (enrôlement) | ◐ | demandé au lot D |
+| Sélection du moteur dans le point d'entrée (`--engine`) | ☑ | lot B |
+| Enrôlement : références `enroll` → représentations (idempotent) | ☑ | lots D + C, branché dans `runtime` |
 | Tests d'intégration avec doubles (`tests/integration`) | ☑ | 4 tests |
 | Tests d'intégration avec implémentations réelles A+C+D+F | ☑ | images synthétiques, aucune mesure |
 
@@ -31,6 +31,21 @@ Légende : ☐ à faire · ◐ en cours · ☑ intégré · ⛔ bloqué
 | E Notre IA | préparation données, modèle de zéro, scripts, suivi d'expériences | contrats ; données réelles + GPU pour entraîner | 2 | ☑ infrastructure (torch non exécuté ici) |
 
 Maximum 4 travailleurs simultanés. Vague 2 lancée dès qu'une place se libère.
+
+## Prochaines tâches
+
+| Tâche | Responsable | Dépend de |
+|---|---|---|
+| Essais sur le PC Windows : fenêtre, webcam, son (`winsound`) | utilisateur + coordinateur | clone sur le PC |
+| Décision licence SFace (`docs/LICENSES.md`) | utilisateur | — |
+| Dépendances `pyttsx3`, torch CPU, onnx/onnxruntime (propositions F, E) | utilisateur puis coordinateur | accord |
+| Journal d'exécution `maisonaccueil.runlog` écrit en fonctionnement normal (option) | coordinateur + G | — |
+| Cadres des visages sur l'aperçu (`VisionOutput.faces`, proposition B) | coordinateur + B | — |
+| Lecture de `audio.volume` par le lecteur | F | — |
+| Factoriser l'alignement partagé D/E | coordinateur | avant 1er entraînement |
+| Première collecte réelle (3 personnes, séances séparées, inconnus volontaires) | utilisateur | consentements |
+| Réglage des seuils sur `tune`, puis test indépendant | G | collecte |
+| Premier entraînement de notre modèle | E | données réelles + GPU réservé |
 
 ## Blocages connus
 

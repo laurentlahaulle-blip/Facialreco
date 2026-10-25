@@ -27,4 +27,4 @@
      neuve sur une base existante recalculerait tout).
 - **Compatibilité** : additif ; seul `SqliteEmbeddingStore` (lot C) et les `Fake*` doivent
   l'implémenter. Pas de changement de schéma.
-- **Statut** : proposé.
+- **Statut** : accepté (coordinateur, 2026-10-25) — implémenté par le lot C, Protocol `EmbeddingStore` étendu (contrats 1.3.0).
