@@ -27,7 +27,7 @@ Légende : ☐ à faire · ◐ en cours · ☑ intégré · ⛔ bloqué
 | D Reconnaissance | étude licences, détection, alignement, suivi, adaptateur de référence, galerie | contrats | 1 | ☑ (YuNet+SFace ; réserve licence SFace) |
 | F Décision & accueil | confirmation temporelle, inconnus, présence/répétitions, file audio | contrats | 1 | ☑ (son réel à tester sous Windows) |
 | B Interface | fenêtre, profils, réglages, aperçu, état, collecte guidée | A, C (interfaces) | 2 | ☑ (fenêtre non affichée ici : libEGL) |
-| G Évaluation | protocole séances, métriques par passage/personne, rapport | contrats (F, D pour exécution réelle) | 2 | ◐ |
+| G Évaluation | protocole séances, métriques par passage/personne, rapport | contrats (F, D pour exécution réelle) | 2 | ☑ (aucune mesure : pas de données) |
 | E Notre IA | préparation données, modèle de zéro, scripts, suivi d'expériences | contrats ; données réelles + GPU pour entraîner | 2 | ☑ infrastructure (torch non exécuté ici) |
 
 Maximum 4 travailleurs simultanés. Vague 2 lancée dès qu'une place se libère.

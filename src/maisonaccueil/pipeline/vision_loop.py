@@ -23,6 +23,7 @@ from maisonaccueil.contracts import (
     Decision,
     Frame,
     RecognitionResult,
+    TrackId,
 )
 from maisonaccueil.contracts.interfaces import (
     ArrivalTracker,
@@ -50,6 +51,7 @@ class VisionOutput:
     arrivals: tuple[ArrivalEvent, ...] = ()
     audio: tuple[AudioRequest, ...] = field(default=())
     frames_dropped: int = 0
+    lost_tracks: tuple[TrackId, ...] = ()  # passages terminés à cette image (évaluation)
 
 
 class VisionLoop:
@@ -106,7 +108,8 @@ class VisionLoop:
             request = self._composer.compose(event)
             if request is not None and self._player.submit(request):
                 audio.append(request)
-        for track_id in self._recognizer.lost_tracks():
+        lost = tuple(self._recognizer.lost_tracks())
+        for track_id in lost:
             self._decision.track_lost(track_id, frame.monotonic_ns)
             self._arrivals.track_lost(track_id, frame.monotonic_ns)
         self._arrivals.tick(frame.monotonic_ns)
@@ -119,6 +122,7 @@ class VisionLoop:
             arrivals=tuple(events),
             audio=tuple(audio),
             frames_dropped=self._queue.dropped,
+            lost_tracks=lost,
         )
 
     def start(self) -> None:

@@ -20,4 +20,4 @@
   self._recognizer.lost_tracks(): ...`).
 - **Compatibilité** : champ avec valeur par défaut, aucun impact sur les lots existants.
   Le lot G utiliserait le champ s'il existe et garderait l'enveloppe sinon.
-- **Statut** : proposé.
+- **Statut** : accepté (coordinateur, 2026-10-25) — `VisionOutput.lost_tracks` ajouté ; l'enveloppe du `Recognizer` dans `evaluation/replay.py` peut être retirée par le lot G.

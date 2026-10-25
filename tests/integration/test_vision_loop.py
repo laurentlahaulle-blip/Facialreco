@@ -37,8 +37,8 @@ def test_single_welcome_per_presence_and_simultaneous_arrivals():
     script[4] = [("trk-a2", "prf-alice", 0.9)]
     script[5] = [("trk-a2", "prf-alice", 0.9)]
     loop, p = _loop([], script, lost={3: ["trk-a"]})
-    for i in range(1, 6):
-        loop.process_frame(make_frame(i, i * 100))
+    outs = [loop.process_frame(make_frame(i, i * 100)) for i in range(1, 6)]
+    assert outs[2].lost_tracks == ("trk-a",)
     played = [r.profile_id for r in p["player"].played]
     assert sorted(played) == ["prf-alice", "prf-bob"]
     assert p["decision"].lost == ["trk-a"]
