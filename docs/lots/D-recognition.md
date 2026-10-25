@@ -18,7 +18,8 @@ Licences et empreintes des poids : `docs/LICENSES-D.md`.
 | `recognition/embedders.py` | `SFaceEmbedder` (`cv2.FaceRecognizerSF`, 128 d, normalisé L2), `SFACE_MODEL_REF` (`origin="pretrained"`), `embed_aligned()` |
 | `recognition/gallery.py` | `InMemoryGallery(model, store)` : chargement filtré par `ModelRef`, `add(persist=)`, `remove_profile`, `reload`, `rank()` top-k par profil, `search()` |
 | `recognition/recognizer.py` | `ReferenceRecognizer`, `RecognizerConfig`, `build_reference_recognizer(store, models_dir)` |
-| `recognition/fakes.py` | `FakeColorEmbedder`, `FakeRandomEmbedder`, `FakeEmbeddingStore`, `FakeLeakyEmbeddingStore` |
+| `recognition/enrollment.py` | `ReferenceEnroller.enroll(refs, store, already_represented=None)` → `EnrollmentReport` ; `embed_image()`, `select_face()`, `EnrollmentConfig`, `SkipReason`, `read_image()`, `build_reference_enroller(models_dir)` |
+| `recognition/fakes.py` | `FakeColorEmbedder`, `FakeRandomEmbedder`, `FakeEmbeddingStore`, `FakeIndexedEmbeddingStore`, `FakeLeakyEmbeddingStore` |
 
 ## Comportements à connaître
 
@@ -45,6 +46,34 @@ Licences et empreintes des poids : `docs/LICENSES-D.md`.
 Conteneur Linux 4 cœurs, CPU, entrée de bruit synthétique : SFace ≈ 13 ms par visage aligné,
 YuNet ≈ 10 ms par image 640×480 (moyenne de 20 appels, après préchauffage).
 
+## Enrôlement (calcul des représentations de référence)
+
+Entrée : itérable de `ReferenceItem(profile_id, reference_id, image_path)` (ou tuples) fourni
+par l'appelant (ex. `ReferenceRepository.list_for_profile` du lot C, split `enroll`) et un
+`EmbeddingStore`. Le module ne lit jamais SQLite.
+
+1. Lecture (`np.fromfile` + `cv2.imdecode` : chemins non ASCII sous Windows) ; image
+   > 4096 px de côté refusée.
+2. Détection ; visage principal = le plus grand. Si un second visage a une aire ≥ 50 % du
+   plus grand → `ambiguous_faces` (risque d'enrôler la mauvaise personne). Pas de repli sur
+   un visage plus petit si le principal est de mauvaise qualité.
+3. Qualité : rejet si `FACE_TOO_SMALL`, `BLURRY`, `LOW_LIGHT`, `NOT_FRONTAL` (seuils non
+   mesurés, configurables via `EnrollmentConfig`).
+4. Représentation par le `FaceEmbedder` fourni (SFace, ou le moteur du lot E), puis
+   `store.add_embedding(profile_id, reference_id, emb)` ; le `ModelRef` exact est porté par
+   l'`Embedding`.
+5. Bilan `EnrollmentReport` : `processed`, `added` (avec `embedding_id`), `skipped` (raison
+   + détail), `summary()` en français, sans score.
+
+Raisons d'exclusion : `already_represented`, `duplicate_in_batch`, `file_missing`,
+`unreadable`, `no_face`, `ambiguous_faces`, `low_quality`, `embedding_failed`,
+`store_error` (exceptions `KeyError`/`ValueError`/`RuntimeError` du stockage, ex. référence
+d'un autre profil ; les autres exceptions, ex. base inaccessible, remontent).
+
+Idempotence : voir `docs/contract-changes/D-represented-references.md` (méthode
+`represented_reference_ids(model)` proposée ; utilisée si présente, sinon
+`already_represented` fourni par l'appelant, sinon mémoire de l'instance).
+
 ## Tests
 
 ```
@@ -64,4 +93,6 @@ uv run pytest tests/contracts tests/vision tests/recognition -rs
   échanger leurs `TrackId`.
 - `InMemoryGallery.search` remplit `frame_id`/`track_id` neutres (voir
   `docs/contract-changes/D-gallery-search.md`) ; préférer `rank()`.
+- Enrôlement : sans `represented_reference_ids` côté C ni `already_represented`, une
+  instance neuve recalcule (et duplique) les références déjà représentées.
 - Réserve de licence sur les données d'entraînement de SFace (voir `docs/LICENSES-D.md`).
