@@ -10,7 +10,7 @@ Paquet : `maisonaccueil.storage`. Schéma : `contracts/schema.sql` v1 (non modif
 | `SchemaVersionError` | base de version supérieure (ou inférieure, aucune migration) |
 | `ProfileRepository` | `create(display_name, *, consent_at, ...)`, `get`, `find`, `list(include_inactive=False)`, `update(**champs)`, `renew_consent`, `deactivate`, `activate`, `set_active`, `delete(profile_id, purge_arrivals=True) -> DeletionReport` |
 | `ReferenceRepository` | séances : `create_session`, `get_session`, `list_sessions`, `set_session_split` ; images : `add_image_bytes`, `import_file`, `get`, `list_for_profile`, `list_for_session`, `verify`, `delete` |
-| `SqliteEmbeddingStore(db, include_inactive=False)` | implémente `contracts.interfaces.EmbeddingStore` : `add_embedding`, `load_embeddings`, `delete_embeddings_for_model` ; en plus `count`, `model_keys`, `delete_embeddings_for_profile` |
+| `SqliteEmbeddingStore(db, include_inactive=False)` | implémente `contracts.interfaces.EmbeddingStore` : `add_embedding`, `load_embeddings`, `delete_embeddings_for_model` ; en plus `represented_reference_ids(model)` (proposition D-represented-references : profils actifs ET inactifs, indépendant de `include_inactive`), `count`, `model_keys`, `delete_embeddings_for_profile` |
 | `SettingsRepository` | `get(key, default)`, `set`, `set_many`, `delete`, `all` (JSON strict) |
 | `ArrivalLogRepository` | `record(event, model_key, policy)` (idempotent), `list_recent`, `count`, `purge_older_than(cutoff)`, `purge_all` |
 

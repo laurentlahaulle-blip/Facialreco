@@ -107,6 +107,22 @@ class SqliteEmbeddingStore:
             out.append((ProfileId(r["profile_id"]), Embedding(model=model, vector=vec)))
         return out
 
+    def represented_reference_ids(self, model: ModelRef) -> set[int]:
+        """``reference_id`` ayant au moins une représentation de ``model`` (même ``key``).
+
+        Sert à l'idempotence de l'enrôlement (docs/contract-changes/
+        D-represented-references.md). Contrairement à ``load_embeddings``, ce résultat
+        ignore ``include_inactive`` et couvre les profils actifs ET inactifs : une
+        référence d'un profil désactivé reste « déjà représentée » ; la recalculer créerait
+        un doublon à la réactivation. Les références supprimées n'y figurent plus
+        (cascade sur ``embeddings``)."""
+        rows = self._db.conn.execute(
+            "SELECT DISTINCT reference_id FROM embeddings"
+            " WHERE model_key = ? AND reference_id IS NOT NULL",
+            (model.key,),
+        )
+        return {int(r[0]) for r in rows}
+
     def count(self, model: ModelRef | None = None) -> int:
         if model is None:
             return int(self._db.conn.execute("SELECT COUNT(*) FROM embeddings").fetchone()[0])
