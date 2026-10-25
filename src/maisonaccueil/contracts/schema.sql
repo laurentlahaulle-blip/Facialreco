@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS reference_images (
     height       INTEGER,
     quality_note TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_reference_images_profile ON reference_images(profile_id);
 
 -- Représentation faciale, TOUJOURS liée à la clé exacte du modèle (ModelRef.key).
 CREATE TABLE IF NOT EXISTS embeddings (
@@ -62,6 +63,7 @@ CREATE TABLE IF NOT EXISTS embeddings (
     created_at     TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_embeddings_model ON embeddings(model_key);
+CREATE INDEX IF NOT EXISTS idx_embeddings_profile ON embeddings(profile_id);
 
 CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,

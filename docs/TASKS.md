@@ -20,11 +20,11 @@ Légende : ☐ à faire · ◐ en cours · ☑ intégré · ⛔ bloqué
 
 | Lot | Tâches clés | Dépendances | Vague | Statut |
 |---|---|---|---|---|
-| A Capture | USB/réseau/fichier/synthétique, états, reconnexion, arrêt propre | contrats | 1 | ☐ |
-| C Stockage | dépôt profils, références, représentations, réglages, suppression complète | contrats, schéma | 1 | ☐ |
-| D Reconnaissance | étude licences, détection, alignement, suivi, adaptateur de référence, galerie | contrats | 1 | ☐ |
-| F Décision & accueil | confirmation temporelle, inconnus, présence/répétitions, file audio | contrats | 1 | ☐ |
-| B Interface | fenêtre, profils, réglages, aperçu, état, collecte guidée | A, C (interfaces) | 2 | ☐ |
+| A Capture | USB/réseau/fichier/synthétique, états, reconnexion, arrêt propre | contrats | 1 | ◐ |
+| C Stockage | dépôt profils, références, représentations, réglages, suppression complète | contrats, schéma | 1 | ☑ (42 tests suite complète) |
+| D Reconnaissance | étude licences, détection, alignement, suivi, adaptateur de référence, galerie | contrats | 1 | ◐ |
+| F Décision & accueil | confirmation temporelle, inconnus, présence/répétitions, file audio | contrats | 1 | ◐ |
+| B Interface | fenêtre, profils, réglages, aperçu, état, collecte guidée | A, C (interfaces) | 2 | ◐ |
 | G Évaluation | protocole séances, métriques par passage/personne, rapport | contrats (F, D pour exécution réelle) | 2 | ☐ |
 | E Notre IA | préparation données, modèle de zéro, scripts, suivi d'expériences | contrats ; données réelles + GPU pour entraîner | 2 | ☐ |
 
