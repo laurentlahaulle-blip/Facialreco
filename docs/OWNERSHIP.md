@@ -2,7 +2,7 @@
 
 | Lot | Branche | Chemins autorisés en écriture | Dépend de |
 |---|---|---|---|
-| Coordinateur | `claude/maisonaccueil-coordinator-whqt6k` (intégration) | `src/maisonaccueil/contracts/`, `src/maisonaccueil/pipeline/`, `pyproject.toml`, `uv.lock`, `CLAUDE.md`, `README.md`, `docs/*.md`, `docs/prompts/`, `tests/contracts/`, `tests/pipeline/`, `tests/integration/`, `config/` | — |
+| Coordinateur | `claude/maisonaccueil-coordinator-whqt6k` (intégration) | `src/maisonaccueil/contracts/`, `src/maisonaccueil/pipeline/`, `src/maisonaccueil/runtime/` (racine de composition du processus vision), `pyproject.toml`, `uv.lock`, `CLAUDE.md`, `README.md`, `docs/*.md`, `docs/prompts/`, `tests/contracts/`, `tests/pipeline/`, `tests/runtime/`, `tests/integration/`, `config/` | — |
 | A — Capture | `lot/a-capture` | `src/maisonaccueil/capture/`, `tests/capture/`, `docs/lots/A-capture.md` | contrats |
 | B — Interface | `lot/b-interface` | `src/maisonaccueil/app/`, `tests/app/`, `docs/lots/B-interface.md` | contrats (+ A, C via interfaces) |
 | C — Stockage | `lot/c-storage` | `src/maisonaccueil/storage/`, `tests/storage/`, `docs/lots/C-storage.md` | contrats, schéma |

@@ -65,6 +65,7 @@ class VisionLoop:
         queue_size: int = 2,
         on_output: Callable[[VisionOutput], None] | None = None,
         on_state: Callable[[CaptureState], None] | None = None,
+        on_frame: Callable[[Frame], None] | None = None,
         idle_tick_s: float = 0.5,
     ) -> None:
         self._source = source
@@ -76,6 +77,7 @@ class VisionLoop:
         self._queue: LatestQueue[Frame] = LatestQueue(queue_size)
         self._on_output = on_output
         self._on_state = on_state
+        self._on_frame = on_frame  # ex. aperçu : appelé dans le thread de capture, doit être rapide
         self._idle_tick_s = idle_tick_s
         self._thread: threading.Thread | None = None
         self._running = threading.Event()
@@ -125,7 +127,7 @@ class VisionLoop:
         self._running.set()
         self._thread = threading.Thread(target=self._run, name="vision-loop", daemon=True)
         self._thread.start()
-        self._source.start(on_frame=self._queue.put, on_state=self._handle_state)
+        self._source.start(on_frame=self._handle_frame, on_state=self._handle_state)
 
     def stop(self, timeout_s: float = 5.0) -> None:
         self._running.clear()
@@ -136,6 +138,14 @@ class VisionLoop:
             if self._thread is not None:
                 self._thread.join(timeout_s)
                 self._thread = None
+
+    def _handle_frame(self, frame: Frame) -> None:
+        if self._on_frame is not None:
+            try:
+                self._on_frame(frame)
+            except Exception:
+                log.exception("Erreur du rappel on_frame (image %s)", frame.frame_id)
+        self._queue.put(frame)
 
     def _handle_state(self, state: CaptureState) -> None:
         if self._on_state is not None:
