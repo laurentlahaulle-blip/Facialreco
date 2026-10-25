@@ -35,7 +35,9 @@ class BoundingBox:
 
 @dataclass(frozen=True, slots=True)
 class Landmarks5:
-    """Cinq points (œil gauche, œil droit, nez, coin gauche, coin droit de la bouche)."""
+    """Cinq points en COORDONNÉES IMAGE : œil situé à gauche dans l'image, œil situé à
+    droite dans l'image, nez, coin de bouche à gauche dans l'image, coin à droite.
+    (Ordre natif de YuNet et du gabarit ArcFace 112×112 ; contrats 1.2.)"""
 
     points: tuple[tuple[float, float], ...]
 

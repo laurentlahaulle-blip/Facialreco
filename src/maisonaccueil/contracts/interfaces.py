@@ -16,7 +16,7 @@ from .events import ArrivalEvent, AudioRequest
 from .faces import Detection, TrackedFace
 from .frames import CaptureState, Frame
 from .ids import ProfileId, TrackId
-from .recognition import RecognitionResult
+from .recognition import Candidate, RecognitionResult
 
 
 @runtime_checkable
@@ -71,12 +71,14 @@ class FaceEmbedder(Protocol):
 @runtime_checkable
 class Gallery(Protocol):
     """Lot D (recherche) adossé au lot C (stockage). Ne compare que des représentations
-    du même ``ModelRef`` ; lève ``IncompatibleEmbeddingError`` sinon."""
+    du même ``ModelRef`` ; lève ``IncompatibleEmbeddingError`` sinon.
+    ``rank`` renvoie les meilleurs candidats (un par profil), triés du meilleur au moins
+    bon ; c'est le ``Recognizer`` qui construit le ``RecognitionResult`` (contrats 1.2)."""
 
     @property
     def model(self) -> ModelRef: ...
 
-    def search(self, query: Embedding, top_k: int = 3) -> RecognitionResult | None: ...
+    def rank(self, query: Embedding, top_k: int = 3) -> tuple[Candidate, ...]: ...
 
 
 @runtime_checkable

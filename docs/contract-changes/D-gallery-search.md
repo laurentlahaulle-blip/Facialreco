@@ -18,4 +18,4 @@
   `RecognitionResult` complet. `InMemoryGallery.rank` existe déjà avec cette signature.
 - **Compatibilité** : seul le lot D implémente `Gallery` ; B/F/G consomment des
   `RecognitionResult` produits par le `Recognizer`, inchangés.
-- **Statut** : proposé.
+- **Statut** : accepté (coordinateur, 2026-10-25) — `Gallery.rank` remplace `search` dans le Protocol (contrats 1.2.0) ; `InMemoryGallery.search` peut rester comme utilitaire.

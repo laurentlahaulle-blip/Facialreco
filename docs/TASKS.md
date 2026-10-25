@@ -8,13 +8,13 @@ Légende : ☐ à faire · ◐ en cours · ☑ intégré · ⛔ bloqué
 |---|---|---|
 | Audit environnement | ☑ | `docs/AUDIT.md` |
 | Squelette, `pyproject.toml`, `uv.lock`, `.venv` | ☑ | |
-| Contrats typés v1.0.0 + schéma SQLite v1 | ☑ | `src/maisonaccueil/contracts/` |
+| Contrats typés (v1.2.0) + schéma SQLite v1 | ☑ | `src/maisonaccueil/contracts/` |
 | `LatestQueue`, `ResourceLock` | ☑ | `src/maisonaccueil/pipeline/` |
 | CLAUDE.md, ownership, prompts | ☑ | |
 | Boucle vision (`VisionLoop`, interfaces seules) | ☑ | testée avec doubles |
 | Processus vision séparé ↔ interface (files inter-processus) | ☐ | après A + D + F + B |
 | Tests d'intégration avec doubles (`tests/integration`) | ☑ | 4 tests |
-| Tests d'intégration avec implémentations réelles des lots | ☐ | après A, C, D, F |
+| Tests d'intégration avec implémentations réelles A+C+D+F | ☑ | images synthétiques, aucune mesure |
 
 ## Lots
 
@@ -22,11 +22,11 @@ Légende : ☐ à faire · ◐ en cours · ☑ intégré · ⛔ bloqué
 |---|---|---|---|---|
 | A Capture | USB/réseau/fichier/synthétique, états, reconnexion, arrêt propre | contrats | 1 | ☑ (tests caméra réelle à faire sur PC) |
 | C Stockage | dépôt profils, références, représentations, réglages, suppression complète | contrats, schéma | 1 | ☑ (42 tests suite complète) |
-| D Reconnaissance | étude licences, détection, alignement, suivi, adaptateur de référence, galerie | contrats | 1 | ◐ |
-| F Décision & accueil | confirmation temporelle, inconnus, présence/répétitions, file audio | contrats | 1 | ◐ |
+| D Reconnaissance | étude licences, détection, alignement, suivi, adaptateur de référence, galerie | contrats | 1 | ☑ (YuNet+SFace ; réserve licence SFace) |
+| F Décision & accueil | confirmation temporelle, inconnus, présence/répétitions, file audio | contrats | 1 | ☑ (son réel à tester sous Windows) |
 | B Interface | fenêtre, profils, réglages, aperçu, état, collecte guidée | A, C (interfaces) | 2 | ◐ |
 | G Évaluation | protocole séances, métriques par passage/personne, rapport | contrats (F, D pour exécution réelle) | 2 | ◐ |
-| E Notre IA | préparation données, modèle de zéro, scripts, suivi d'expériences | contrats ; données réelles + GPU pour entraîner | 2 | ☐ |
+| E Notre IA | préparation données, modèle de zéro, scripts, suivi d'expériences | contrats ; données réelles + GPU pour entraîner | 2 | ◐ |
 
 Maximum 4 travailleurs simultanés. Vague 2 lancée dès qu'une place se libère.
 

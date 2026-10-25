@@ -9,4 +9,4 @@
   FaceDetector, FaceEmbedder, FaceTracker, FrameSource, Gallery, Recognizer, WelcomeComposer)`
   et ajout à `__all__`.
 - **Compatibilité** : purement additif.
-- **Statut** : proposé.
+- **Statut** : refusé (coordinateur, 2026-10-25) — les Protocols restent dans `maisonaccueil.contracts.interfaces` (import explicite voulu), même décision que pour la proposition A.

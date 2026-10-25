@@ -31,7 +31,7 @@ from .ids import (
 )
 from .recognition import Candidate, QualityFlag, RawScore, RecognitionResult
 
-CONTRACTS_VERSION = "1.1.0"
+CONTRACTS_VERSION = "1.2.0"
 SCHEMA_VERSION = 1
 
 

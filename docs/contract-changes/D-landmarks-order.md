@@ -14,4 +14,4 @@
   ```
 - **Compatibilité** : c'est la convention déjà appliquée par le lot D
   (`maisonaccueil.vision.alignment`). Le lot E doit l'utiliser pour son prétraitement.
-- **Statut** : proposé.
+- **Statut** : accepté (coordinateur, 2026-10-25) — contrats 1.2.0.
