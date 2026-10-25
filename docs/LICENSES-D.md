@@ -77,8 +77,9 @@ en local. Ce document n'est pas un avis juridique.
 
 ### ONNX Runtime (extra `recognition`)
 
-- Licence : MIT (<https://github.com/microsoft/onnxruntime>). Roues CPU publiées pour
-  Windows/Linux/macOS et CPython 3.11–3.13 (à revérifier à la version figée dans `uv.lock`).
+- Licence : MIT (<https://github.com/microsoft/onnxruntime>). Version figée dans `uv.lock` :
+  1.31.0, avec roues `win_amd64` pour CPython 3.11, 3.12 et 3.13 (vérifié dans `uv.lock`).
+  Non installé dans ce worktree (`uv sync --extra gui` seulement).
 - Les deux modèles retenus s'exécutent avec `cv2.dnn` (via `FaceDetectorYN` /
   `FaceRecognizerSF`) : **ONNX Runtime n'est pas nécessaire** pour la chaîne de référence et
   n'est pas utilisé par le lot D. Il reste utile au lot E (export de notre modèle).
