@@ -1,0 +1,33 @@
+# Environnement Python propre au projet
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Données locales : JAMAIS committées (visages, bases, sorties, modèles)
+var/
+data/
+models/
+runs/
+*.sqlite
+*.sqlite3
+*.db
+*.onnx
+*.pt
+*.pth
+*.ckpt
+*.mp4
+*.avi
+*.mkv
+
+# Worktrees éventuellement créés dans le dépôt
+.claude/worktrees/
+
+# Éditeurs
+.vscode/
+.idea/

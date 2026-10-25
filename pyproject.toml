@@ -1,0 +1,57 @@
+[project]
+name = "maisonaccueil"
+version = "0.1.0"
+description = "Application locale de reconnaissance faciale et d'accueil vocal pour un usage familial."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = { text = "Proprietary - usage familial privé" }
+# Dépendances centrales : propriété du coordinateur (voir CLAUDE.md).
+dependencies = [
+    "numpy>=1.26",
+    # Variante "headless" : évite le conflit de plugins Qt entre OpenCV et PySide6.
+    "opencv-python-headless>=4.9",
+]
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.6"]
+# Moteur d'inférence de référence. Compatibilité à vérifier par le lot D avant usage.
+recognition = ["onnxruntime>=1.17"]
+# Entraînement (lot E). Non installé par défaut : volumineux, et aucun GPU réservé.
+training = ["torch>=2.2", "torchvision>=0.17"]
+
+[project.scripts]
+maisonaccueil = "maisonaccueil.app.main:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/maisonaccueil"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "camera: nécessite une caméra physique réservée (exclu par défaut en CI locale)",
+    "gpu: nécessite un GPU réservé",
+    "gui: nécessite PySide6 (exécuté avec QT_QPA_PLATFORM=offscreen)",
+    "slow: test long",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+packages = ["maisonaccueil.contracts", "maisonaccueil.pipeline"]
+strict = true
