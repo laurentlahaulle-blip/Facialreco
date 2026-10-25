@@ -106,6 +106,9 @@ def render_report(
             + ("**brûlé**" if test_status.burned else "non brûlé")
             + f" ({test_status.evaluations} évaluation(s) antérieure(s) enregistrée(s))"
         )
+    elif split == "test":
+        lines.append("- Registre du test non fourni : l'indépendance du test (non brûlé) "
+                     "n'a pas été vérifiée.")
     lines.append("")
     if split_report is not None:
         lines += ["## Contrôle du découpage", ""]

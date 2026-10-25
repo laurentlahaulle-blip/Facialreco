@@ -96,12 +96,13 @@ class FakeDecisionEngine:
 
 
 class FakeArrivalTracker:
-    """Une arrivée par décision CONFIRMED/UNKNOWN, sauf profil déjà présent (contrats 1.2 :
-    ``note_track_activity`` et ``track_lost`` présents)."""
+    """Une arrivée par décision CONFIRMED/UNKNOWN ; un profil confirmé reste « présent »
+    ``presence_ms`` après sa confirmation (pas de nouvel accueil). Expose
+    ``note_track_activity`` et ``track_lost`` (contrats 1.2)."""
 
-    def __init__(self, suppress_present: bool = True) -> None:
-        self.present: set[str] = set()
-        self.suppress = suppress_present
+    def __init__(self, presence_ms: float = 2000.0) -> None:
+        self.presence_ns = int(presence_ms * 1e6)
+        self.present: dict[str, int] = {}
         self.activity: list[str] = []
         self.lost: list[str] = []
 
@@ -112,14 +113,16 @@ class FakeArrivalTracker:
             return c.ArrivalEvent(c.new_event_id(), c.ArrivalKind.UNKNOWN, d.track_id,
                                   d.monotonic_ns, datetime(2026, 1, 1, tzinfo=UTC))
         assert d.profile_id is not None
-        if self.suppress and d.profile_id in self.present:
+        if d.profile_id in self.present:
             return None
-        self.present.add(d.profile_id)
+        self.present[d.profile_id] = d.monotonic_ns
         return c.ArrivalEvent(c.new_event_id(), c.ArrivalKind.KNOWN, d.track_id, d.monotonic_ns,
                               datetime(2026, 1, 1, tzinfo=UTC), profile_id=d.profile_id)
 
     def tick(self, monotonic_ns: int) -> None:
-        return None
+        for pid, t in list(self.present.items()):
+            if monotonic_ns - t > self.presence_ns:
+                del self.present[pid]
 
     def note_track_activity(self, track_id: c.TrackId, monotonic_ns: int) -> None:
         self.activity.append(track_id)

@@ -12,6 +12,7 @@ Deux niveaux :
    construits par une fabrique ``seuil → DecisionSetup``) sur les résultats journalisés,
    puis applique les définitions de ``matching``.
 
+Chaque résultat n'est attribué qu'à un seul passage (``matching.attribute_results``).
 Les deux refusent (``SplitViolationError``) tout journal d'une séance hors ``tune`` et
 peuvent consigner le réglage dans le ``TestLedger``.
 
@@ -28,12 +29,13 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from typing import Any
 
 from maisonaccueil.contracts import Metric
 from maisonaccueil.contracts.interfaces import ArrivalTracker, DecisionEngine, WelcomeComposer
 
-from .annotations import AnnotationSet, Expected, Passage
-from .matching import Outcome, match_runs
+from .annotations import AnnotationSet, Expected
+from .matching import Outcome, attribute_results, match_runs
 from .metrics import Z95, Proportion, Summary, summarize
 from .replay import rerun_decisions
 from .runlog import RunLog
@@ -75,13 +77,10 @@ class CurvePoint:
     no_result: int  # passages sans aucun résultat dans la fenêtre
 
 
-def _passage_best(
-    p: Passage, log: RunLog, grace_ms: float, metric: Metric
-) -> tuple[str, float] | None:
+def _passage_best(events: Sequence[dict[str, Any]], metric: Metric) -> tuple[str, float] | None:
     best: tuple[str, float] | None = None
-    for e in log.of("result"):
-        t = float(e["t_ms"])
-        if not p.start_ms <= t <= p.end_ms + grace_ms or not e["candidates"]:
+    for e in events:
+        if not e["candidates"]:
             continue
         c = e["candidates"][0]
         s = float(c["score"])
@@ -105,7 +104,10 @@ def score_curve(
     cfg, metric = _single_config(logs)
     by_session = {lg.header.session_id: lg for lg in logs}
     passages = [p for p in ann.passages_in(["tune"]) if p.session_id in by_session]
-    bests = [(p, _passage_best(p, by_session[p.session_id], grace_ms, metric)) for p in passages]
+    attributed: dict[str, list[dict[str, Any]]] = {}
+    for lg in logs:
+        attributed.update(attribute_results(passages, lg, grace_ms=grace_ms))
+    bests = [(p, _passage_best(attributed.get(p.passage_id, []), metric)) for p in passages]
     n_k = sum(1 for p in passages if p.expected == Expected.KNOWN)
     n_u = len(passages) - n_k
     out: list[CurvePoint] = []
@@ -257,14 +259,13 @@ def reliability_table(
     k = [0] * nb
     n = [0] * nb
     pas: list[set[str]] = [set() for _ in range(nb)]
-    by_session = {lg.header.session_id: lg for lg in logs}
-    for p in ann.passages_in(["tune"]):
-        lg = by_session.get(p.session_id)
-        if lg is None:
-            continue
-        for e in lg.of("result"):
-            t = float(e["t_ms"])
-            if not p.start_ms <= t <= p.end_ms + grace_ms or not e["candidates"]:
+    passages = ann.passages_in(["tune"])
+    attributed: dict[str, list[dict[str, Any]]] = {}
+    for lg in logs:
+        attributed.update(attribute_results(passages, lg, grace_ms=grace_ms))
+    for p in passages:
+        for e in attributed.get(p.passage_id, []):
+            if not e["candidates"]:
                 continue
             c = e["candidates"][0]
             s = float(c["score"])

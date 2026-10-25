@@ -5,7 +5,12 @@ Règles vérifiées par ``check_splits`` (erreurs bloquantes) :
 - chaque séance appartient à exactement un découpage (garanti par le format) ;
 - deux séances ne partagent pas la même vidéo (``video_sha256`` identique) : une même
   vidéo déclarée sous deux identifiants serait un chevauchement déguisé ;
-- les passages évalués (``tune``/``test``) ne proviennent que de séances ``tune``/``test``.
+- une séance déclarée à la fois dans les annotations et dans ``extra_sessions`` (ex. base
+  SQLite) porte le même découpage des deux côtés.
+
+Par construction, une évaluation ne retient que les passages des séances du découpage
+demandé (``AnnotationSet.passages_in``) et ``match_runs`` refuse un journal d'une autre
+séance.
 
 Avertissements (non bloquants, affichés dans le rapport) :
 

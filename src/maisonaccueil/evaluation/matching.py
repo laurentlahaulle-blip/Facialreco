@@ -12,7 +12,9 @@ le ``profile_id`` est celui de l'arrivée, puis (2) le passage commencé le plus
 candidat, l'arrivée est **hors passage** (comptée à part : accueil intempestif potentiel).
 Un accueil (``welcome``) suit le passage de son arrivée (``arrival_event_id``) ; à défaut, il
 est attribué par le temps avec les mêmes règles. Les décisions sont attribuées par le temps
-(information, non utilisées pour l'issue).
+(information, non utilisées pour l'issue). Chaque ``result`` est attribué à UN seul
+passage (même règle, profil = 1er candidat) : il sert au compte ``results``, à la courbe
+de score et à la table de fiabilité.
 
 **Messages** : les ``welcome`` du journal si ``messages_from = "welcome"``, sinon les
 ``arrival`` (exécution sans compositeur).
@@ -124,6 +126,24 @@ def _window_candidates(passages: Sequence[Passage], t: float, grace_ms: float) -
     return [p for p in passages if p.start_ms <= t <= p.end_ms + grace_ms]
 
 
+def attribute_results(
+    passages: Sequence[Passage], log: RunLog, *, grace_ms: float = 1000.0
+) -> dict[str, list[dict[str, Any]]]:
+    """Résultats (``result``) du journal attribués à UN passage chacun, avec la même règle
+    que les arrivées (profil = 1er candidat). Un résultat hors fenêtre n'est pas retenu."""
+    sid = log.header.session_id
+    ps = [p for p in passages if p.session_id == sid]
+    out: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for e in log.of("result"):
+        t = float(e["t_ms"])
+        cands = _window_candidates(ps, t, grace_ms)
+        if not cands:
+            continue
+        top = e["candidates"][0]["profile_id"] if e["candidates"] else None
+        out[_pick(cands, t, top).passage_id].append(e)
+    return out
+
+
 def match_session(
     passages: Sequence[Passage], log: RunLog, *, grace_ms: float = 1000.0
 ) -> tuple[list[PassageResult], list[UnattributedEvent]]:
@@ -134,7 +154,7 @@ def match_session(
     arrivals: dict[str, list[dict[str, Any]]] = defaultdict(list)
     messages: dict[str, list[dict[str, Any]]] = defaultdict(list)
     decisions: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    results: dict[str, int] = defaultdict(int)
+    results = {k: len(v) for k, v in attribute_results(ps, log, grace_ms=grace_ms).items()}
     arrival_owner: dict[str, str] = {}
     unattributed: list[UnattributedEvent] = []
     use_welcome = log.header.messages_from == "welcome"
@@ -142,11 +162,7 @@ def match_session(
     for e in log.events:
         t = float(e["t_ms"])
         rec = e["record"]
-        if rec == "result":
-            for p in _window_candidates(ps, t, grace_ms):
-                results[p.passage_id] += 1
-            continue
-        if rec in ("track_lost", "frame"):
+        if rec in ("result", "track_lost", "frame"):
             continue
         profile = e.get("profile_id")
         owner: Passage | None = None
