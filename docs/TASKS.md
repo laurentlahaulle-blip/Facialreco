@@ -11,8 +11,10 @@ Légende : ☐ à faire · ◐ en cours · ☑ intégré · ⛔ bloqué
 | Contrats typés v1.0.0 + schéma SQLite v1 | ☑ | `src/maisonaccueil/contracts/` |
 | `LatestQueue`, `ResourceLock` | ☑ | `src/maisonaccueil/pipeline/` |
 | CLAUDE.md, ownership, prompts | ☑ | |
-| Orchestration processus vision ↔ interface | ☐ | après A + D (ou faux) + F |
-| Tests d'intégration bout en bout (doubles de test) | ☐ | après A, C, F |
+| Boucle vision (`VisionLoop`, interfaces seules) | ☑ | testée avec doubles |
+| Processus vision séparé ↔ interface (files inter-processus) | ☐ | après A + D + F + B |
+| Tests d'intégration avec doubles (`tests/integration`) | ☑ | 4 tests |
+| Tests d'intégration avec implémentations réelles des lots | ☐ | après A, C, D, F |
 
 ## Lots
 

@@ -41,4 +41,5 @@
 
 - Les tests caméra, GPU et GUI s'exécutent sur le PC cible.
 - Le conteneur est éphémère : le travail doit être poussé sur la branche distante dédiée
-  pour être conservé (point soumis à l'accord de l'utilisateur).
+  pour être conservé : seule la branche d'intégration est poussée (accord de l'utilisateur
+  obtenu le 2026-10-25) ; les branches de lot restent locales.
