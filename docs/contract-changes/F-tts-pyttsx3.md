@@ -47,4 +47,5 @@ du lot F (conteneur Linux sans carte son) : seul le chemin « paquet absent » l
 
 ## Statut
 
-proposé
+différé (coordinateur, 2026-10-25) — dépendance soumise à l'accord de l'utilisateur et à la
+vérification des licences sur le PC Windows ; en attendant : fichiers WAV + `winsound`.

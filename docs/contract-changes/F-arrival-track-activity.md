@@ -46,4 +46,4 @@ actif `track_stale_ms` après sa dernière décision, puis le délai d'absence c
 
 ## Statut
 
-proposé
+accepté (coordinateur, 2026-10-25) — contrats 1.1.0 ; appelé par `pipeline.VisionLoop`.

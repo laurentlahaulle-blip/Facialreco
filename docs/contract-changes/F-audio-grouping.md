@@ -24,4 +24,5 @@ Champ facultatif avec valeur par défaut : aucun impact sur les autres lots.
 
 ## Statut
 
-proposé
+refusé pour l'instant (coordinateur, 2026-10-25) — l'enchaînement séquentiel suffit pour
+la première version ; à reconsidérer après essais réels.

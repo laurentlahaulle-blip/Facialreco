@@ -108,6 +108,15 @@ class ArrivalTracker(Protocol):
         """Appel périodique : expiration des présences."""
         ...
 
+    def note_track_activity(self, track_id: TrackId, monotonic_ns: int) -> None:
+        """Signe de vie : appelé pour chaque RecognitionResult, même sans décision
+        (contrats 1.1, proposition F-arrival-track-activity)."""
+        ...
+
+    def track_lost(self, track_id: TrackId, monotonic_ns: int) -> None:
+        """Appelé pour chaque TrackId renvoyé par ``Recognizer.lost_tracks()``."""
+        ...
+
 
 @runtime_checkable
 class WelcomeComposer(Protocol):

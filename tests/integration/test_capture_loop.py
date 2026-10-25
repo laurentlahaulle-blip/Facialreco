@@ -19,21 +19,21 @@ class SlowRecognizer(FakeRecognizer):
 
 def test_synthetic_capture_through_vision_loop_drops_old_frames():
     holder: dict[str, VisionLoop] = {}
-    source = SyntheticSource(CameraId("synthetic"), fps=None, max_frames=200,
+    source = SyntheticSource(CameraId("synthetic"), fps=500.0,
                              drop_counter=lambda: holder["loop"].frames_dropped)
     outputs: list[VisionOutput] = []
     states: list[CaptureState] = []
-    script = {i: [("trk-1", "prf-1", 0.9)] for i in range(0, 201)}
+    script = {i: [("trk-1", "prf-1", 0.9)] for i in range(0, 100_000)}
     loop = VisionLoop(source, SlowRecognizer(script), FakeDecision(), FakeArrivals(),
                       FakeComposer(), player := FakePlayer(), queue_size=2,
                       on_output=outputs.append, on_state=states.append, idle_tick_s=0.05)
     holder["loop"] = loop
     loop.start()
-    deadline = threading.Event()
-    for _ in range(100):
-        if any(s.status in (CaptureStatus.STOPPED, CaptureStatus.FAILED) for s in states):
+    pause = threading.Event()
+    for _ in range(200):  # au plus 10 s, même sur machine chargée
+        if player.played and len(outputs) >= 10 and loop.frames_dropped > 0:
             break
-        deadline.wait(0.05)
+        pause.wait(0.05)
     loop.stop(timeout_s=3)
 
     assert outputs, "aucune image traitée"

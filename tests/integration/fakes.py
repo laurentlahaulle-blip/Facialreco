@@ -107,6 +107,12 @@ class FakeArrivals:
     def tick(self, monotonic_ns: int) -> None:
         self.ticks += 1
 
+    def note_track_activity(self, track_id: c.TrackId, monotonic_ns: int) -> None:
+        pass
+
+    def track_lost(self, track_id: c.TrackId, monotonic_ns: int) -> None:
+        pass
+
 
 class FakeComposer:
     def compose(self, e: c.ArrivalEvent) -> c.AudioRequest | None:

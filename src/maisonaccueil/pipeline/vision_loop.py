@@ -92,6 +92,7 @@ class VisionLoop:
         events: list[ArrivalEvent] = []
         audio: list[AudioRequest] = []
         for result in results:
+            self._arrivals.note_track_activity(result.track_id, result.monotonic_ns)
             d = self._decision.observe(result)
             if d is None:
                 continue
@@ -105,6 +106,7 @@ class VisionLoop:
                 audio.append(request)
         for track_id in self._recognizer.lost_tracks():
             self._decision.track_lost(track_id, frame.monotonic_ns)
+            self._arrivals.track_lost(track_id, frame.monotonic_ns)
         self._arrivals.tick(frame.monotonic_ns)
         return VisionOutput(
             frame_id=int(frame.frame_id),
