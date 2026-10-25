@@ -108,6 +108,14 @@ class FakeEmbeddingStore:
         return before - len(self._rows)
 
 
+class FakeIndexedEmbeddingStore(FakeEmbeddingStore):
+    """Stockage qui expose la méthode PROPOSÉE ``represented_reference_ids`` (voir
+    docs/contract-changes/D-represented-references.md)."""
+
+    def represented_reference_ids(self, model: ModelRef) -> set[int]:
+        return {r for _i, _p, r, e in self._rows if r is not None and e.model.key == model.key}
+
+
 class FakeLeakyEmbeddingStore(FakeEmbeddingStore):
     """Stockage défaillant qui ignore le filtre par modèle (test de robustesse)."""
 
@@ -119,6 +127,7 @@ __all__ = [
     "FAKE_COLOR_MODEL_REF",
     "FakeColorEmbedder",
     "FakeEmbeddingStore",
+    "FakeIndexedEmbeddingStore",
     "FakeLeakyEmbeddingStore",
     "FakeRandomEmbedder",
 ]
