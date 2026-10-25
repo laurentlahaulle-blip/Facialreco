@@ -348,8 +348,8 @@ class SettingsTab(QWidget):
         self.height_edit = QLineEdit()
         self.fps = QLineEdit()
         self.engine = QComboBox()
-        for value, label in ctrl.settings.engine_choices:
-            self.engine.addItem(label, value)
+        self._reload_engines()
+        ctrl.settings.subscribe(self._reload_engines)
         self.volume = QSlider(Qt.Orientation.Horizontal)
         self.volume.setRange(0, 100)
         self.volume_label = QLabel()
@@ -390,6 +390,13 @@ class SettingsTab(QWidget):
         self.volume_label.setText(f"{f.volume} / 100")
         if self._ctrl.settings.warning:
             self.info.setText(self._ctrl.settings.warning)
+
+    def _reload_engines(self) -> None:
+        current = self.engine.currentData()
+        self.engine.clear()
+        for value, label in self._ctrl.settings.engine_choices:
+            self.engine.addItem(label, value)
+        self.engine.setCurrentIndex(max(0, self.engine.findData(current)))
 
     def _discover(self) -> None:
         cams = self._ctrl.settings.discover_usb_cameras()

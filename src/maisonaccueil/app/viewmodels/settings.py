@@ -16,6 +16,7 @@ from urllib.parse import urlsplit
 
 from maisonaccueil.contracts import CameraId, SourceConfig, SourceKind
 
+from ..messages import EngineStatus
 from ..ports import SettingsStore
 from .base import Observable, ValidationError
 from .formatting import ENGINE_UNAVAILABLE
@@ -151,6 +152,8 @@ class SettingsViewModel(Observable):
         self._engines = list(available_engines)
         self._discovery = camera_discovery
         self.warning: str | None = None
+        self.engine_detail = ""
+        self._engine_reported = bool(self._engines)
         self.usb_cameras: list[tuple[str, str]] = []  # (index, libellé)
         self.discovery_message = (
             "" if camera_discovery else "recherche de webcams non disponible (capture absente)"
@@ -193,8 +196,20 @@ class SettingsViewModel(Observable):
     def engine_choices(self) -> list[tuple[str, str]]:
         """(identifiant, libellé). Sans moteur installé : une seule entrée explicite."""
         if not self._engines:
-            return [("", ENGINE_UNAVAILABLE)]
+            label = ENGINE_UNAVAILABLE + (f" ({self.engine_detail})" if self.engine_detail else "")
+            return [("", label)]
         return [("", "aucun moteur")] + [(e, e) for e in self._engines]
+
+    def apply_engine_status(self, status: EngineStatus, engine_name: str | None) -> None:
+        """Le moteur n'est proposé que si le processus vision le déclare disponible ;
+        sinon la raison reçue (``detail``) est affichée."""
+        if status.available and status.model is not None:
+            self._engines = [engine_name or status.model.name]
+        else:
+            self._engines = []
+        self.engine_detail = status.detail
+        self._engine_reported = True
+        self._notify()
 
     def current_source(self) -> SourceConfig:
         try:
@@ -208,7 +223,8 @@ class SettingsViewModel(Observable):
         src = self.current_source()
         engine = self._store.get(KEY_ENGINE, "") or ""
         if engine and engine not in self._engines:
-            self.warning = f"Moteur « {engine} » enregistré mais non disponible"
+            if self._engine_reported:
+                self.warning = f"Moteur « {engine} » enregistré mais non disponible"
             engine = ""
         volume = self._store.get(KEY_VOLUME, DEFAULT_VOLUME)
         if not isinstance(volume, int) or not 0 <= volume <= 100:

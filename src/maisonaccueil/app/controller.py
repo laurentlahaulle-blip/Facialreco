@@ -36,6 +36,7 @@ class AppServices:
     camera_id: CameraId | None = None
     demo: bool = False  # bannière « DÉMO — données synthétiques »
     camera_discovery: CameraDiscovery | None = None
+    engine_name: str | None = None  # moteur demandé au processus vision (ex. "reference")
 
 
 class AppController:
@@ -81,6 +82,7 @@ class AppController:
                 self.status.apply_capture_state(event)
             elif isinstance(event, EngineStatus):
                 self.status.apply_engine_status(event)
+                self.settings.apply_engine_status(event, self.services.engine_name)
             elif isinstance(event, EnrollmentSample):
                 self.enrollment.add_sample(event)
         if batch.preview is not None:

@@ -15,8 +15,12 @@ Processus VISION (app.vision_worker, sans Qt)        Processus INTERFACE (Qt)
 
 - L'interface ne fait **aucun calcul de vision** : elle lit des `VisionOutput`,
   `CaptureState`, `EngineStatus`, `EnrollmentSample` et un `PreviewImage` déjà réduit.
-- `VisionProcess` lance le travailleur dans un processus `spawn` ; la fabrique de source
-  est transmise par nom (`module:fonction`).
+- `VisionProcess` lance un travailleur dans un processus `spawn`. Le travailleur
+  (`worker`, défaut `app.vision_worker:run_preview_worker`) et la fabrique de source sont
+  transmis par nom (`module:fonction`), avec des `worker_kwargs` vérifiés sérialisables
+  dès le parent. Le fils résout la cible (`run_named_worker`) ; si elle est introuvable,
+  il se replie sur l'aperçu seul et publie « moteur non disponible » avec la raison.
+  `InProcessVision` accepte les mêmes `worker` et arguments (thread, pour les tests).
 - Publication non bloquante (pertes comptées) ; lecture non bloquante côté interface.
 
 ## Modules
@@ -62,13 +66,26 @@ Processus VISION (app.vision_worker, sans Qt)        Processus INTERFACE (Qt)
 - `run_preview_worker(lock_camera=False)` par défaut : la source du lot A prend elle-même
   `ResourceLock("camera-N")` ; l'option sert aux sources qui ne le font pas.
 
+## Moteur (`--engine`)
+
+- `--engine reference` : le processus vision exécute
+  `maisonaccueil.runtime.engine:run_engine_worker` (coordinateur) avec
+  `db_path` = le MÊME fichier que l'interface (chemin absolu) et `models_dir` (`--models-dir`,
+  optionnel). Défaut si `maisonaccueil.runtime.engine` est importable, `none` sinon.
+- `--engine none` : aperçu seul. `--demo` impose `none` (`--demo --engine reference` est refusé).
+- Le choix est calculé par `main.plan_vision` (sans Qt, testé).
+- L'interface n'annonce un moteur (onglet Réglages, état) que sur
+  `EngineStatus(available=True)` reçu du processus ; sinon « moteur non disponible (détail
+  reçu) », p. ex. « moteur de référence : Poids absents : … ».
+
 ## Lancer
 
 ```
 uv sync --extra gui
 uv run maisonaccueil --check        # diagnostic sans fenêtre
-uv run maisonaccueil --demo         # source synthétique + données en mémoire
-uv run maisonaccueil --db var/b/maisonaccueil.sqlite [--source-factory module:fonction]
+uv run maisonaccueil --demo         # source synthétique + données en mémoire, sans moteur
+uv run maisonaccueil [--db var/b/maisonaccueil.sqlite] [--engine reference|none] \
+    [--models-dir models/d] [--source-factory module:fonction]
 ```
 
 ## Tests
@@ -86,6 +103,8 @@ le processus vision (vrai processus `spawn` avec source synthétique), le raccor
 - Pas de cadres de visages sur l'aperçu (boîtes absentes de `VisionOutput`, voir proposition).
 - Pas de sélection automatique d'images : elle doit venir de la vision (`EnrollmentSample`).
 - Changement de source appliqué au prochain démarrage (pas de redémarrage à chaud).
-- Volume enregistré seulement (`audio.volume`) ; à lire par le lecteur audio (lot F).
+- Volume enregistré seulement (`audio.volume`) ; non lu par le lecteur (hors périmètre actuel).
+- Le moteur réel (poids YuNet/SFace présents) n'a pas été exécuté ici : seul le repli
+  « poids absents » l'a été, y compris dans un vrai processus `spawn`.
 - La recherche de webcams s'exécute dans le processus interface (bloquant quelques secondes).
 - Pas de saisie du message d'accueil audio préenregistré (`welcome_audio`).

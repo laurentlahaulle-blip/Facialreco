@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from maisonaccueil.app.fakes import FakeProfileStore, FakeReferenceSink, FakeSettingsStore
-from maisonaccueil.app.messages import EnrollmentSample
+from maisonaccueil.app.messages import EngineStatus, EnrollmentSample
 from maisonaccueil.app.viewmodels import (
     ENGINE_UNAVAILABLE,
     GUIDANCE_STEPS,
@@ -58,6 +58,8 @@ def test_settings_roundtrip_with_storage(storage: StorageHandle) -> None:
     assert again.fps == "15.5" and again.engine == "ref-engine" and again.width == "1280"
     # moteur enregistré mais disparu : signalé, pas utilisé
     vm2 = SettingsViewModel(store, [])
+    assert vm2.load().engine == "" and vm2.warning is None  # état du moteur pas encore reçu
+    vm2.apply_engine_status(EngineStatus(False, detail="poids absents"), "ref-engine")
     assert vm2.load().engine == "" and vm2.warning is not None
 
 

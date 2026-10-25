@@ -11,7 +11,10 @@ Deux usages :
    ``pipeline.VisionLoop`` par l'intégration quand la chaîne complète existe ;
    ``PreviewTap`` permet d'intercaler l'aperçu sur le flux d'images.
 
-``VisionProcess`` lance le travailleur dans un processus séparé (contexte ``spawn``).
+``VisionProcess`` lance un travailleur (``worker``, par défaut ``run_preview_worker`` ;
+ex. ``maisonaccueil.runtime.engine:run_engine_worker`` pour la chaîne complète) dans un
+processus séparé (contexte ``spawn``), désigné par nom ``module:fonction`` avec des
+arguments sérialisables.
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ from __future__ import annotations
 import importlib
 import logging
 import multiprocessing as mp
+import pickle
 import threading
 import time
 from collections.abc import Callable
@@ -121,16 +125,21 @@ def camera_resource_name(config: SourceConfig) -> str:
     return f"camera-{loc}" if loc.isdigit() else "camera-0"
 
 
+def resolve_callable(spec: str, what: str = "fonction") -> Callable[..., Any]:
+    """``"paquet.module:fonction"`` → objet appelable (importé dans le processus appelant)."""
+    module_name, sep, attr = spec.partition(":")
+    if not sep or not module_name or not attr:
+        raise ValueError(f"{what} invalide : {spec!r} (attendu module:fonction)")
+    target = getattr(importlib.import_module(module_name), attr)
+    if not callable(target):
+        raise TypeError(f"{spec!r} n'est pas appelable")
+    return target  # type: ignore[no-any-return]
+
+
 def resolve_factory(spec: str) -> SourceFactory:
     """``"paquet.module:fonction"`` → fabrique de ``FrameSource`` (doit être importable
     dans le processus vision, ce qui exige une fonction de niveau module)."""
-    module_name, sep, attr = spec.partition(":")
-    if not sep or not module_name or not attr:
-        raise ValueError(f"Fabrique de source invalide : {spec!r} (attendu module:fonction)")
-    factory = getattr(importlib.import_module(module_name), attr)
-    if not callable(factory):
-        raise TypeError(f"{spec!r} n'est pas appelable")
-    return factory  # type: ignore[no-any-return]
+    return resolve_callable(spec, "Fabrique de source")
 
 
 def run_preview_worker(
@@ -190,28 +199,75 @@ def _failed(config: SourceConfig, detail: str) -> CaptureState:
     )
 
 
+PREVIEW_WORKER = "maisonaccueil.app.vision_worker:run_preview_worker"
+
+WorkerTarget = Callable[..., None] | str
+"""Travailleur vision : ``f(factory, config, events, preview, stop_event, **kwargs)``,
+bloquant jusqu'à ``stop_event.set()``. Ex. ``run_preview_worker`` (aperçu seul) ou
+``maisonaccueil.runtime.engine:run_engine_worker`` (chaîne complète, coordinateur)."""
+
+
+def run_named_worker(
+    worker: WorkerTarget,
+    factory: SourceFactory | str,
+    config: SourceConfig,
+    events: Any,
+    preview: Any,
+    stop_event: Any,
+    kwargs: dict[str, Any],
+) -> None:
+    """Point d'entrée du processus fils : résout ``worker`` (``module:fonction``) DANS le
+    fils puis l'exécute. Si la cible est introuvable, se replie sur l'aperçu seul en
+    publiant « moteur non disponible » avec la raison (aucun résultat inventé)."""
+    try:
+        target = resolve_callable(worker, "Travailleur vision") if isinstance(worker, str) \
+            else worker
+    except Exception as exc:
+        log.warning("Travailleur vision %r indisponible : %s", worker, exc)
+        run_preview_worker(
+            factory, config, events, preview, stop_event,
+            engine_status=EngineStatus(False, detail=f"travailleur indisponible : {exc}"),
+            max_preview_fps=float(kwargs.get("max_preview_fps", 10.0)),
+        )
+        return
+    target(factory, config, events, preview, stop_event, **kwargs)
+
+
+def check_picklable(value: Any, label: str) -> None:
+    """Vérifie dans le processus parent qu'une valeur peut être transmise au fils
+    ``spawn`` (erreur claire plutôt qu'un échec au démarrage du fils)."""
+    try:
+        pickle.dumps(value)
+    except Exception as exc:
+        raise ValueError(f"{label} non sérialisable pour le processus vision : {exc}") from exc
+
+
 class VisionProcess:
     """Processus vision séparé (contexte ``spawn``, identique sous Windows et Linux).
 
-    ``factory`` doit être une chaîne ``module:fonction`` (ou une fonction de niveau
-    module) pour être transmissible au processus fils."""
+    ``factory`` et ``worker`` doivent être des chaînes ``module:fonction`` (ou des
+    fonctions de niveau module) ; ``worker_kwargs`` doit être sérialisable (pickle)."""
 
     def __init__(
         self,
         factory: SourceFactory | str,
         config: SourceConfig,
         *,
-        engine_status: EngineStatus = ENGINE_STATUS_UNAVAILABLE,
+        worker: WorkerTarget = PREVIEW_WORKER,
+        worker_kwargs: dict[str, Any] | None = None,
         max_preview_fps: float = 10.0,
     ) -> None:
+        kwargs = {"max_preview_fps": max_preview_fps, **(worker_kwargs or {})}
+        check_picklable((worker, factory, config, kwargs), "Paramètres du travailleur")
+        self.worker = worker
+        self.worker_kwargs = kwargs
         self._ctx = mp.get_context("spawn")
         self.events: Any = self._ctx.Queue(EVENTS_MAXSIZE)
         self.preview: Any = self._ctx.Queue(PREVIEW_MAXSIZE)
         self._stop = self._ctx.Event()
         self._process = self._ctx.Process(
-            target=run_preview_worker,
-            args=(factory, config, self.events, self.preview, self._stop),
-            kwargs={"engine_status": engine_status, "max_preview_fps": max_preview_fps},
+            target=run_named_worker,
+            args=(worker, factory, config, self.events, self.preview, self._stop, kwargs),
             name="maisonaccueil-vision",
             daemon=True,
         )
@@ -244,13 +300,14 @@ class InProcessVision:
         config: SourceConfig,
         events: Any,
         preview: Any,
+        *,
+        worker: WorkerTarget = PREVIEW_WORKER,
         **kwargs: Any,
     ) -> None:
         self._stop = threading.Event()
         self._thread = threading.Thread(
-            target=run_preview_worker,
-            args=(factory, config, events, preview, self._stop),
-            kwargs=kwargs,
+            target=run_named_worker,
+            args=(worker, factory, config, events, preview, self._stop, kwargs),
             name="vision-worker",
             daemon=True,
         )
