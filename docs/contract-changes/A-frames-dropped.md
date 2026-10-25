@@ -1,6 +1,8 @@
 # A — Origine de `frames_dropped` et export des interfaces
 
-**Statut** : proposé (lot A)
+**Statut** : 1 accepté (documenté dans `contracts/frames.py`) ; 2 docstring corrigée,
+export refusé — les Protocols restent dans `maisonaccueil.contracts.interfaces` (import
+explicite voulu). Décision coordinateur, 2026-10-25.
 
 ## 1. `CaptureState.frames_dropped`
 

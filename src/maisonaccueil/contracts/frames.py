@@ -76,4 +76,6 @@ class CaptureState:
     monotonic_ns: int
     detail: str = ""
     frames_captured: int = 0
-    frames_dropped: int = 0  # images abandonnées par la file bornée
+    # Images abandonnées par la file bornée du consommateur : la source ne connaît pas la
+    # file, la valeur vient d'un compteur fourni par l'orchestration (0 sinon).
+    frames_dropped: int = 0

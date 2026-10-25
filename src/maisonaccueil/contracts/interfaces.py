@@ -23,7 +23,7 @@ from .recognition import RecognitionResult
 class FrameSource(Protocol):
     """Lot A. ``start`` ne bloque pas. Les images sont poussées via ``on_frame`` depuis
     le thread/processus de capture ; le consommateur doit être rapide (déposer dans une
-    ``LatestFrameQueue``). ``stop`` est idempotent et libère la caméra."""
+    ``pipeline.LatestQueue``). ``stop`` est idempotent et libère la caméra."""
 
     def start(
         self,
